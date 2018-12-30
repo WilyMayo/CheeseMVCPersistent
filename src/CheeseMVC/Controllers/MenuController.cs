@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using CheeseMVC.Data;
 using CheeseMVC.Models;
 using CheeseMVC.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -21,7 +22,7 @@ namespace CheeseMVC.Controllers
             context = dbContext;
         }
 
-        public IActionResult Index ()
+        public IActionResult Index()
         {
             IList<Menu> menus = context.Menus.ToList();
             return View(menus);
@@ -52,6 +53,64 @@ namespace CheeseMVC.Controllers
             }
 
             return View(addMenuViewModel);
+        }
+
+        [HttpGet]
+        public IActionResult ViewMenu(int id)
+        {
+            List<CheeseMenu> items = context
+            .CheeseMenus
+            .Include(item => item.Cheese)
+            .Where(cm => cm.MenuID == id)
+            .ToList();
+
+            Menu menu = context.Menus.Single(c => c.ID == id);
+
+            ViewMenuViewModel viewMenuViewModel = new ViewMenuViewModel
+            {
+                Menu = menu,
+                Items = items
+            };
+
+            return View(viewMenuViewModel);
+        }
+
+        [HttpGet]
+        public IActionResult AddItem(int id)
+        {
+            Menu menu = context.Menus.Single(c => c.ID == id);
+
+            List<Cheese> cheeses = context.Cheeses.ToList();
+
+            AddMenuItemViewModel addMenuItemViewModel = new AddMenuItemViewModel(menu, cheeses);
+
+            return View(addMenuItemViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult AddItem(AddMenuItemViewModel addMenuItemViewModel)
+        {
+            if (ModelState.IsValid)
+            {
+                IList<CheeseMenu> existingItems = context.CheeseMenus.Where(cm => cm.CheeseID == addMenuItemViewModel.cheeseID).Where(cm => cm.MenuID == addMenuItemViewModel.menuID).ToList();
+
+                if (existingItems.Count == 0)
+                {
+                    CheeseMenu newCheeseMenu = new CheeseMenu
+                    {
+                        MenuID = addMenuItemViewModel.menuID,
+                        CheeseID = addMenuItemViewModel.cheeseID
+                    };
+
+                    context.CheeseMenus.Add(newCheeseMenu);
+                    context.SaveChanges();
+
+                }
+
+                return Redirect("/Menu/ViewMenu/" + addMenuItemViewModel.menuID);
+            }
+
+            return View(addMenuItemViewModel);
         }
     }
 }
