@@ -12,6 +12,10 @@ namespace CheeseMVC
     {
         public static void Main(string[] args)
         {
+            var host = new WebHostBuilder()
+               .UseKestrel()
+               .UseContentRoot(Directory.GetCurrentDirectory())
+               .UseIISIntegration()
             BuildWebHost(args).Run();
         }
 
@@ -19,5 +23,7 @@ namespace CheeseMVC
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
                 .Build();
+
+            host.run();
     }
 }

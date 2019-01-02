@@ -6,6 +6,7 @@ using CheeseMVC.Data;
 using CheeseMVC.Models;
 using CheeseMVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CheeseMVC.Controllers
 {
@@ -20,7 +21,8 @@ namespace CheeseMVC.Controllers
 
         public IActionResult Index()
         {
-            return View(context.Categories.ToList());
+            IList<CheeseCategory> theCategory = context.Categories.ToList();
+            return View(theCategory);
         }
 
         public IActionResult Add()
